@@ -14,6 +14,7 @@ import { PlanItem } from './plan/plan-item.entity';
 import { Admin } from './admin/admin.entity';
 import { AuthChallenge } from './admin/auth-challenge.entity';
 import { AuthResetToken } from './admin/auth-reset-token.entity';
+import { CustomerAuthChallenge } from './auth/customer-auth-challenge.entity';
 
 // Feature Modules
 import { CategoriesModule } from './categories/categories.module';
@@ -22,6 +23,7 @@ import { PlanModule } from './plan/plan.module';
 import { FavouritesModule } from './favourites/favourites.module';
 import { AdminModule } from './admin/admin.module';
 import { MailModule } from './mail/mail.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -47,6 +49,7 @@ import { MailModule } from './mail/mail.module';
           Admin,
           AuthChallenge,
           AuthResetToken,
+          CustomerAuthChallenge,
         ],
         // synchronize: true creates/updates tables automatically.
         // Safe for development; set to false and use migrations in production.
@@ -69,6 +72,7 @@ import { MailModule } from './mail/mail.module';
     FavouritesModule,
     AdminModule,
     MailModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

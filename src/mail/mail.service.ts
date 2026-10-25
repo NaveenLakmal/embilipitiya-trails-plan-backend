@@ -5,7 +5,8 @@ import * as nodemailer from 'nodemailer';
 export interface SendOtpOptions {
   to: string;
   otp: string;
-  purpose: 'login' | 'reset_password';
+  purpose: 'login' | 'reset_password' | 'signup' | 'customer_reset_password';
+  name?: string;
 }
 
 @Injectable()
@@ -52,7 +53,7 @@ export class MailService {
   }
 
   async sendOtpEmail(options: SendOtpOptions): Promise<void> {
-    const { to, otp, purpose } = options;
+    const { to, otp, purpose, name } = options;
 
     if (!this.transporter) {
       this.logger.error('Cannot send email: SMTP transporter is not configured.');
@@ -66,11 +67,35 @@ export class MailService {
       this.configService.get<string>('MAIL_FROM_ADDRESS') ||
       this.configService.get<string>('SMTP_USER', 'noreply@embitrail.lk');
 
-    const isLogin = purpose === 'login';
-    const actionTitle = isLogin ? 'Admin Login Verification' : 'Admin Password Recovery';
-    const actionDescription = isLogin
-      ? 'A login attempt was initiated for your EmbiTrail administrator account.'
-      : 'A password recovery request was initiated for your EmbiTrail administrator account.';
+    let actionTitle: string;
+    let actionDescription: string;
+    let subHeader: string;
+
+    switch (purpose) {
+      case 'signup':
+        actionTitle = 'Verify Your Email';
+        actionDescription = name
+          ? `Welcome to EmbiTrail, ${name}! Please enter this 6-digit code to verify your email address and activate your account.`
+          : 'Welcome to EmbiTrail! Please enter this 6-digit code to verify your email address and activate your account.';
+        subHeader = 'Visitor Account Verification';
+        break;
+      case 'customer_reset_password':
+        actionTitle = 'Password Recovery';
+        actionDescription = 'A password recovery request was initiated for your EmbiTrail account. Enter this 6-digit code to reset your password.';
+        subHeader = 'Account Security Verification';
+        break;
+      case 'reset_password':
+        actionTitle = 'Admin Password Recovery';
+        actionDescription = 'A password recovery request was initiated for your EmbiTrail administrator account.';
+        subHeader = 'Administrator Security Verification';
+        break;
+      case 'login':
+      default:
+        actionTitle = 'Admin Login Verification';
+        actionDescription = 'A login attempt was initiated for your EmbiTrail administrator account.';
+        subHeader = 'Administrator Security Verification';
+        break;
+    }
 
     const subject = `EmbiTrail — ${actionTitle} Code`;
 
@@ -83,7 +108,7 @@ export class MailService {
       '',
       'This code expires in 5 minutes.',
       'Security notice: Never share this code with anyone. EmbiTrail staff will never ask for your verification code.',
-      'If you did not request this verification code, please ignore this email and verify your account credentials.',
+      'If you did not request this verification code, please ignore this email.',
       '----------------------------------------',
       'EmbiTrail Tourism & Travel Planning Platform',
     ].join('\n');
@@ -105,7 +130,7 @@ export class MailService {
           <tr>
             <td style="background-color: #0f766e; padding: 24px 32px; text-align: left;">
               <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 700; letter-spacing: 0.5px;">EmbiTrail</h1>
-              <p style="margin: 4px 0 0 0; color: #ccfbf1; font-size: 13px;">Administrator Security Verification</p>
+              <p style="margin: 4px 0 0 0; color: #ccfbf1; font-size: 13px;">${subHeader}</p>
             </td>
           </tr>
           <!-- Body -->

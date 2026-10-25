@@ -12,12 +12,16 @@ import { Favourite } from './favourites/favourite.entity';
 import { VisitPlan } from './plan/visit-plan.entity';
 import { PlanItem } from './plan/plan-item.entity';
 import { Admin } from './admin/admin.entity';
+import { AuthChallenge } from './admin/auth-challenge.entity';
+import { AuthResetToken } from './admin/auth-reset-token.entity';
 
 // Feature Modules
 import { CategoriesModule } from './categories/categories.module';
 import { PlacesModule } from './places/places.module';
 import { PlanModule } from './plan/plan.module';
 import { FavouritesModule } from './favourites/favourites.module';
+import { AdminModule } from './admin/admin.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -33,7 +37,17 @@ import { FavouritesModule } from './favourites/favourites.module';
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         url: configService.get<string>('DATABASE_URL'),
-        entities: [Category, Place, User, Favourite, VisitPlan, PlanItem, Admin],
+        entities: [
+          Category,
+          Place,
+          User,
+          Favourite,
+          VisitPlan,
+          PlanItem,
+          Admin,
+          AuthChallenge,
+          AuthResetToken,
+        ],
         // synchronize: true creates/updates tables automatically.
         // Safe for development; set to false and use migrations in production.
         synchronize: true,
@@ -53,6 +67,8 @@ import { FavouritesModule } from './favourites/favourites.module';
     PlacesModule,
     PlanModule,
     FavouritesModule,
+    AdminModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

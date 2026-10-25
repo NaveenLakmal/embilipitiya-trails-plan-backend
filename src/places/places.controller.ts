@@ -12,10 +12,12 @@ import {
   Query,
   UploadedFile,
   UploadedFiles,
+  UseGuards,
   UseInterceptors,
 } from "@nestjs/common";
 import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express";
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiConsumes,
   ApiOperation,
@@ -27,6 +29,7 @@ import { PlacesService } from "./places.service";
 import { CreatePlaceDto } from "./dto/create-place.dto";
 import { UpdatePlaceDto } from "./dto/update-place.dto";
 import { StorageService, UploadedFileDto } from "../storage/storage.service";
+import { AdminJwtGuard } from "../admin/guards/admin-jwt.guard";
 
 @ApiTags("Places")
 @Controller("places")
@@ -52,12 +55,14 @@ export class PlacesController {
   }
 
   @Post("upload-image")
+  @UseGuards(AdminJwtGuard)
+  @ApiBearerAuth()
   @UseInterceptors(
     FileInterceptor("file", {
       limits: { fileSize: 10 * 1024 * 1024 },
     }),
   )
-  @ApiOperation({ summary: "Upload an image for a place to S3 bucket" })
+  @ApiOperation({ summary: "Upload an image for a place to S3 bucket (Admin only)" })
   @ApiConsumes("multipart/form-data")
   @ApiBody({
     schema: {
@@ -72,17 +77,21 @@ export class PlacesController {
   })
   @ApiResponse({ status: 201, description: "Image uploaded successfully" })
   @ApiResponse({ status: 400, description: "Validation error" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Forbidden" })
   uploadImage(@UploadedFile() file: UploadedFileDto) {
     return this.storageService.uploadPlaceImage(file);
   }
 
   @Post("upload-images")
+  @UseGuards(AdminJwtGuard)
+  @ApiBearerAuth()
   @UseInterceptors(
     FilesInterceptor("files", 10, {
       limits: { fileSize: 10 * 1024 * 1024 },
     }),
   )
-  @ApiOperation({ summary: "Upload multiple images for a place to S3 bucket" })
+  @ApiOperation({ summary: "Upload multiple images for a place to S3 bucket (Admin only)" })
   @ApiConsumes("multipart/form-data")
   @ApiBody({
     schema: {
@@ -100,6 +109,8 @@ export class PlacesController {
   })
   @ApiResponse({ status: 201, description: "Images uploaded successfully" })
   @ApiResponse({ status: 400, description: "Validation error" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Forbidden" })
   uploadImages(@UploadedFiles() files: UploadedFileDto[]) {
     return this.storageService.uploadPlaceImages(files);
   }
@@ -122,17 +133,25 @@ export class PlacesController {
   }
 
   @Post()
-  @ApiOperation({ summary: "Create a new place" })
+  @UseGuards(AdminJwtGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Create a new place (Admin only)" })
   @ApiResponse({ status: 201, description: "The created place" })
   @ApiResponse({ status: 400, description: "Validation error" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Forbidden" })
   create(@Body() dto: CreatePlaceDto) {
     return this.placesService.create(dto);
   }
 
   @Patch(":id")
-  @ApiOperation({ summary: "Update an existing place" })
+  @UseGuards(AdminJwtGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Update an existing place (Admin only)" })
   @ApiResponse({ status: 200, description: "The updated place" })
   @ApiResponse({ status: 400, description: "Validation error" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Forbidden" })
   @ApiResponse({ status: 404, description: "Place not found." })
   update(
     @Param("id", ParseIntPipe) id: number,
@@ -142,9 +161,13 @@ export class PlacesController {
   }
 
   @Delete(":id")
+  @UseGuards(AdminJwtGuard)
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: "Delete a place" })
+  @ApiOperation({ summary: "Delete a place (Admin only)" })
   @ApiResponse({ status: 204, description: "Deleted successfully" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Forbidden" })
   @ApiResponse({ status: 404, description: "Place not found." })
   remove(@Param("id", ParseIntPipe) id: number) {
     return this.placesService.remove(id);

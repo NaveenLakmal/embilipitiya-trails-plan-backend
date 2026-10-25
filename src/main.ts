@@ -31,7 +31,7 @@ async function bootstrap() {
       }
     },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    allowedHeaders: ['Content-Type', 'Accept', 'x-session-id'],
+    allowedHeaders: ['Content-Type', 'Accept', 'x-session-id', 'Authorization'],
     credentials: true,
   });
 
@@ -53,9 +53,22 @@ async function bootstrap() {
     .setDescription(
       'REST API for the EmbiTrail one-day travel planner around Embilipitiya, Sri Lanka.\n\n' +
       '**Session-based plan endpoints** require the `x-session-id` header.\n\n' +
-      '**Places**: Full CRUD operations + image upload to Neon / S3 bucket.',
+      '**Places & Categories Mutations**: Require Bearer token authentication.\n\n' +
+      '**Admin Auth**: Multi-factor authentication with email OTP verification.',
     )
     .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter your Admin JWT access_token',
+        in: 'header',
+      },
+      'bearer',
+    )
+    .addTag('Admin Auth', 'Administrator authentication & password recovery')
     .addTag('Places', 'CRUD for tourist places')
     .addTag('Categories', 'CRUD for place categories')
     .addTag('Visit Plan', 'Session-based visit plan management')

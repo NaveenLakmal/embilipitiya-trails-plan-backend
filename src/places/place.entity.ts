@@ -28,6 +28,9 @@ export class Place {
   @Column({ type: 'varchar', length: 200 })
   name: string;
 
+  @Column({ type: 'varchar', length: 200, nullable: true })
+  city: string | null;
+
   @Column({ type: 'text' })
   description: string;
 
@@ -81,6 +84,7 @@ export class Place {
 
   @Column({ name: 'photo_urls', type: 'text', array: true, default: '{}' })
   photo_urls: string[];
+  
 
   @OneToMany(() => PlanItem, (item) => item.place)
   planItems: PlanItem[];

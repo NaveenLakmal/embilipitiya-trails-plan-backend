@@ -54,6 +54,7 @@ async function bootstrap() {
       'REST API for the EmbiTrail one-day travel planner around Embilipitiya, Sri Lanka.\n\n' +
       '**Session-based plan endpoints** require the `x-session-id` header.\n\n' +
       '**Places & Categories Mutations**: Require Bearer token authentication.\n\n' +
+      '**Favourites**: Require a customer Bearer access token.\n\n' +
       '**Admin Auth**: Multi-factor authentication with email OTP verification.',
     )
     .setVersion('1.0')
@@ -63,7 +64,7 @@ async function bootstrap() {
         scheme: 'bearer',
         bearerFormat: 'JWT',
         name: 'JWT',
-        description: 'Enter your Admin JWT access_token',
+        description: 'Enter an admin or customer JWT access token, as required by the endpoint.',
         in: 'header',
       },
       'bearer',
@@ -72,6 +73,7 @@ async function bootstrap() {
     .addTag('Places', 'CRUD for tourist places')
     .addTag('Categories', 'CRUD for place categories')
     .addTag('Visit Plan', 'Session-based visit plan management')
+    .addTag('Favourites', 'Saved places for the authenticated customer')
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);

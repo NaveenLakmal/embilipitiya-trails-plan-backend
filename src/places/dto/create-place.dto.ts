@@ -8,6 +8,7 @@ import {
   IsOptional,
   Matches,
   IsArray,
+  MaxLength,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
@@ -22,6 +23,12 @@ export class CreatePlaceDto {
   @IsString()
   @IsNotEmpty({ message: 'name must not be empty.' })
   name: string;
+
+  @ApiPropertyOptional({ example: 'Embilipitiya', maxLength: 200, nullable: true })
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  city?: string | null;
 
   @ApiProperty({ example: 'A famous wildlife park known for wild elephants.' })
   @IsString()

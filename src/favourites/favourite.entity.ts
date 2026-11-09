@@ -5,17 +5,13 @@ import {
   ManyToOne,
   JoinColumn,
   CreateDateColumn,
+  Index,
 } from 'typeorm';
 import { User } from '../users/user.entity';
 import { Place } from '../places/place.entity';
 
-/**
- * Favourite entity — schema only.
- * Working add/remove-favourite endpoints require an authenticated user.
- * That auth system will be built in a later phase.
- * The module's endpoints currently return 501 Not Implemented.
- */
 @Entity('favourites')
+@Index('IDX_favourites_user_place', ['user_id', 'place_id'], { unique: true })
 export class Favourite {
   @PrimaryGeneratedColumn({ name: 'favourite_id' })
   favourite_id: number;

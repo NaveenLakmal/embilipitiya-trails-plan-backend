@@ -1,46 +1,83 @@
-import { Controller, Delete, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Param,
+  ParseIntPipe,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { FavouritesService } from './favourites.service';
 
-/**
- * FavouritesController — STUB ONLY.
- *
- * Favourites require an authenticated user, and the auth system has not been
- * built yet. All endpoints return 501 Not Implemented with a clear message.
- * Once auth (JWT + guards) is added in a later phase, these endpoints will
- * be fully implemented.
- */
-@ApiTags('Favourites (stub)')
+type CustomerRequest = { user: { user_id: number } };
+
+@ApiTags('Favourites')
+@ApiBearerAuth('bearer')
+@ApiResponse({
+  status: 401,
+  description: 'A valid customer access token is required.',
+})
+@UseGuards(JwtAuthGuard)
 @Controller('favourites')
 export class FavouritesController {
-  private notYetAvailable() {
-    return {
-      statusCode: 501,
-      message:
-        'Favourites require an account, which is not yet implemented. This endpoint will be available once authentication is added.',
-    };
-  }
+  constructor(
+    @Inject(FavouritesService)
+    private readonly favouritesService: FavouritesService,
+  ) {}
 
   @Get()
-  @HttpCode(HttpStatus.NOT_IMPLEMENTED)
-  @ApiOperation({ summary: '(STUB) List favourites — requires auth (not yet implemented)' })
-  @ApiResponse({ status: 501, description: 'Not yet implemented' })
-  getFavourites() {
-    return this.notYetAvailable();
+  @ApiOperation({
+    summary: 'List the current customer’s favourite places, newest first',
+  })
+  @ApiResponse({ status: 200, description: 'Array of saved places.' })
+  getFavourites(@Req() req: CustomerRequest) {
+    return this.favouritesService.findAll(req.user.user_id);
   }
 
   @Post(':placeId')
-  @HttpCode(HttpStatus.NOT_IMPLEMENTED)
-  @ApiOperation({ summary: '(STUB) Add a favourite — requires auth (not yet implemented)' })
-  @ApiResponse({ status: 501, description: 'Not yet implemented' })
-  addFavourite(@Param('placeId') _placeId: string) {
-    return this.notYetAvailable();
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Save a place to the current customer’s favourites (idempotent)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'The saved place, including when already saved.',
+  })
+  @ApiResponse({ status: 400, description: 'Invalid place ID.' })
+  @ApiResponse({ status: 404, description: 'Place not found.' })
+  addFavourite(
+    @Req() req: CustomerRequest,
+    @Param('placeId', ParseIntPipe) placeId: number,
+  ) {
+    return this.favouritesService.add(req.user.user_id, placeId);
   }
 
   @Delete(':placeId')
-  @HttpCode(HttpStatus.NOT_IMPLEMENTED)
-  @ApiOperation({ summary: '(STUB) Remove a favourite — requires auth (not yet implemented)' })
-  @ApiResponse({ status: 501, description: 'Not yet implemented' })
-  removeFavourite(@Param('placeId') _placeId: string) {
-    return this.notYetAvailable();
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary:
+      'Remove a place from the current customer’s favourites (idempotent)',
+  })
+  @ApiResponse({
+    status: 204,
+    description: 'Removed, including when not previously saved.',
+  })
+  @ApiResponse({ status: 400, description: 'Invalid place ID.' })
+  async removeFavourite(
+    @Req() req: CustomerRequest,
+    @Param('placeId', ParseIntPipe) placeId: number,
+  ): Promise<void> {
+    await this.favouritesService.remove(req.user.user_id, placeId);
   }
 }
